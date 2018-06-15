@@ -1,3 +1,11 @@
+# paramety z shela
+# args[1] # 1st team name
+# args[2] # 2nd team name
+# args[3] # 1st team
+# args[4] # 2nd team
+# args[5] # post tweet? 0/1
+
+
 setwd("~/RProjects/Mundial2018_twitter_stream/twitter_data/")
 rm(list = ls())
 
@@ -7,11 +15,6 @@ momenty_show <- FALSE
 options(echo=FALSE) # if you want see commands in output file
 args <- commandArgs(trailingOnly = TRUE)
 
-# args[1] # 1st team name
-# args[2] # 2nd team name
-# args[3] # 1st team
-# args[4] # 2nd team
-# args[5] # post tweet? 0/1
 
 # post twtiter
 #mecz <- "Match Portugal #POR - Spain #ESP on hashtag "

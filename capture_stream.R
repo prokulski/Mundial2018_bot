@@ -1,9 +1,11 @@
-options(echo=FALSE) # if you want see commands in output file
-args <- commandArgs(trailingOnly = TRUE)
-
+# paramety z shela
 # args[1] # 1st team
 # args[2] # 2nd team
 # args[3] # end hour:min
+
+options(echo=FALSE)
+args <- commandArgs(trailingOnly = TRUE)
+
 
 setwd("~/RProjects/Mundial2018_twitter_stream/")
 
