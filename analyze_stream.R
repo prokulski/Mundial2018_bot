@@ -13,13 +13,11 @@ momenty_show <- FALSE
 
 # czy skrypt opalony z shella?
 if(length(commandArgs()) == 2) {
-  # nie - podajemy parametry z ręki
-  twitter_query <- "#fraaus"
-  twitter_query_rev <- paste0("#", str_sub(twitter_query, 5, 7), str_sub(twitter_query, 2, 4))
-  twitter_query_tw <- paste0(twitter_query, " & ", twitter_query_rev)
 
-  mecz <- "Match Portugal #POR - Spain #ESP on hashtag "
-  mecz_tw <- "Portugal #POR - Spain #ESP, let's see hashtags "
+  teamA_f <- "Peru" # 1st team name
+  teamB_f <- "Denmark" # 2nd team name
+  teamA_s <- "PER" # 1st team
+  teamB_s <- "DEN" # 2nd team
 
   post_tweets <- FALSE
 
@@ -29,32 +27,40 @@ if(length(commandArgs()) == 2) {
   options(echo=FALSE)
   args <- commandArgs(trailingOnly = TRUE)
 
-
-  # post twtiter
-  #mecz <- "Match Portugal #POR - Spain #ESP on hashtag "
-  mecz <- paste0("Match ", args[1], " #", toupper(args[3]), " - ", args[2], " #", toupper(args[4]), " on hashtags ")
-
-  #mecz_tw <- "Portugal #POR - Spain #ESP on hashtags "
-  mecz_tw <- paste0(args[1], " #", toupper(args[3]), " - ", args[2], " #", toupper(args[4]), " on hashtags ")
-
-  #twitter_query <- "#poresp"
-  twitter_query <- paste0("#", tolower(args[3]), tolower(args[4]))
-
-  #twitter_query_rev <- "#esppor"
-  twitter_query_rev <- paste0("#", tolower(args[4]), tolower(args[3]))
-
-  #twitter_query_tw <- paste0(twitter_query, " & ", twitter_query_rev)
-  twitter_query_tw <- paste0(twitter_query, " & ", twitter_query_rev)
+  teamA_f <- args[1] # 1st team name
+  teamB_f <- args[2] # 2nd team name
+  teamA_s <- args[3] # 1st team
+  teamB_s <- args[4] # 2nd team
 
   post_tweets <- ifelse(as.numeric(args[5]) == 0, FALSE, TRUE)
-
-  cat(paste0("mecz = '", mecz, "'\n"))
-  cat(paste0("mecz_tw = '", mecz_tw, "'\n"))
-  cat(paste0("twitter_query = '", twitter_query, "'\n"))
-  cat(paste0("twitter_query_rev = '", twitter_query_rev, "'\n"))
-  cat(paste0("twitter_query_tw = '", twitter_query_tw, "'\n"))
-  cat(paste0("post tweet? = '", post_tweets, "'\n"))
 }
+
+
+# mecz <- "Match Portugal #POR - Spain #ESP on hashtag "
+mecz <- paste0("Match ", teamA_f, " #", toupper(teamA_s), " - ", teamB_f, " #", toupper(teamB_s), " on hashtags ")
+
+#mecz_tw <- "Portugal #POR - Spain #ESP on hashtags "
+mecz_tw <- paste0(teamA_f, " #", toupper(teamA_s), " - ", teamB_f, " #", toupper(teamB_s), " on hashtags ")
+
+#twitter_query <- "#poresp"
+twitter_query <- paste0("#", tolower(teamA_s), tolower(teamB_s))
+
+#twitter_query_rev <- "#esppor"
+twitter_query_rev <- paste0("#", tolower(teamB_s), tolower(teamA_s))
+
+#twitter_query_tw <- paste0(twitter_query, " & ", twitter_query_rev)
+twitter_query_tw <- paste0(twitter_query, " & ", twitter_query_rev)
+
+cat(paste0("mecz = '", mecz, "'\n"))
+cat(paste0("mecz_tw = '", mecz_tw, "'\n"))
+cat(paste0("twitter_query = '", twitter_query, "'\n"))
+cat(paste0("twitter_query_rev = '", twitter_query_rev, "'\n"))
+cat(paste0("twitter_query_tw = '", twitter_query_tw, "'\n"))
+cat(paste0("post tweet? = '", post_tweets, "'\n"))
+
+stop_tags <- tolower(c(teamA_f, teamB_f, teamA_s, teamB_s, twitter_query, twitter_query_rev))
+
+
 
 library(methods)
 library(tidyverse)
@@ -67,10 +73,13 @@ library(rtweet)
 library(ggrepel)
 
 dedicated_stop_words <- c("https", "t.co",
-                          "worldcuprussia2018", "worldcup2018", "worldcup",
+                          "match", "game", "team",
+                          "worldcuprussia2018", "worldcup2018", "worldcup", "worldcup18",
                           "fifaworldcup", "fifaworldcup2018",
-                          "rusia2018", "russia2018",
-                          "wm2018", "mundial", "mundial2018")
+                          "rusia2018", "russia2018", "copa2018", "cm2018",
+                          "wm2018", "mundial", "mundial2018", "mundial18",
+                          gsub("#", "", stop_tags))
+
 
 spam_strings <- c("Tap below to vote now", "You can vote for your",
                   "Absolute world class performance")
@@ -91,16 +100,20 @@ p3 <- NULL
 p4 <- NULL
 p5 <- NULL
 p7 <- NULL
+p7b <- NULL
 p8 <- NULL
 p9 <- NULL
 
 theme_set(theme_minimal() +
-            theme(plot.title = element_text(family = NULL, face = "bold", size = 18, color = "black"),
+            theme(plot.title = element_text(family = NULL, face = "bold", size = 24, color = "black"),
                   plot.subtitle = element_text(family = NULL, face = "plain", size = 12, color = "black"),
-                  plot.caption = element_text(family = NULL, face = "italic", size = 9, color = "darkgray"),
+                  plot.caption = element_text(family = NULL, face = "italic", size = 14, color = "brown"),
                   plot.background = element_rect(fill="#efefef", color="#aaaaaa"),
                   panel.background = element_rect(fill = "white", color="black"),
-                  strip.text.x = element_text(face = "bold")))
+                  strip.background.x = element_rect(fill = "gray80"),
+                  strip.text.x = element_text(face = "bold", color = "black", size = 14),
+                  axis.text = element_text(size = 12),
+                  legend.text = element_text(size = 12)))
 
 # szukamy najnowszego pliku w folderze
 tweets <- list.files() %>%
@@ -262,8 +275,6 @@ if(nrow(places_geo) != 0) {
          subtitle = paste0(mecz, toupper(twitter_query_tw),
                            " (only for tweets that have a given location)"),
          caption = "(c) 2018, Łukasz Prokulski, fb.com/DaneAnalizy")
-
-
 }
 
 # text
@@ -277,11 +288,7 @@ words <- tweets %>%
   # międzynarodowe stop words
   filter(!word %in% unlist(stopwords::data_stopwords_stopwordsiso)) %>%
   # dedykkowane stopwords
-  filter(!word %in% dedicated_stop_words) %>%
-  # tag z którego pochodzą tweety
-  filter(word != tolower(gsub("#", "", twitter_query, fixed = TRUE))) %>%
-  filter(word != tolower(gsub("#", "", twitter_query_rev, fixed = TRUE)))
-
+  filter(!word %in% dedicated_stop_words)
 
 
 p8 <- words %>%
@@ -298,7 +305,10 @@ p8 <- words %>%
   labs(size = "", x = "", y = "",
        title = "The most popular words over time",
        subtitle = paste0(mecz, toupper(twitter_query_tw)),
-       caption = "(c) 2018, Łukasz Prokulski, fb.com/DaneAnalizy")
+       caption = "(c) 2018, Łukasz Prokulski, fb.com/DaneAnalizy") +
+  theme(axis.text = element_text(size = 14))
+
+
 
 if(momenty_show) {
 
@@ -315,22 +325,28 @@ if(momenty_show) {
 p9_data <- words %>%
   mutate(created_at = floor_date(created_at, unit = "5 minutes")) %>%
   count(created_at, word) %>%
-  ungroup()
-
-p9 <- p9_data %>%
+  ungroup() %>%
   group_by(created_at) %>%
   top_n(3, n) %>%
   ungroup() %>%
   mutate(created_at = with_tz(created_at, "Europe/Warsaw")) %>%
   group_by(created_at) %>%
   arrange(desc(n)) %>%
-  mutate(pos = row_number()) %>%
+  mutate(pos = row_number(),
+         time_n_max = max(n)) %>%
   ungroup() %>%
-  filter(pos <= 3) %>%
+  filter(pos <= 3)
+
+p9 <- p9_data %>%
   ggplot() +
   geom_col(aes(created_at, n, fill = word),
            color = "gray10", position = position_dodge()) +
-  theme(legend.position = "bottom") +
+  geom_text(aes(created_at, 0.1*max(p9_data$n)+time_n_max, color = word,
+                label = ifelse(pos == 1, word, "")),
+            show.legend = FALSE, angle = 45, size = 6) +
+  theme(legend.position = "bottom", legend.direction = "horizontal",
+        axis.text = element_text(size = 16)) +
+  scale_y_continuous(expand = expand_scale(mult = c(0, 0.15), add = 0)) +
   labs(x = "", y = "Number of tweets", fill = "",
        title = "Three of the most popular words in 5-minute blocks",
        subtitle = paste0(mecz, toupper(twitter_query_tw)),
@@ -347,6 +363,54 @@ if(momenty_show) {
   }
 }
 
+
+# text
+biwords <- tweets %>%
+  filter(!is_retweet) %>%
+  select(created_at, text, lang) %>%
+  # bez linków
+  mutate(text = gsub("\n", "", text)) %>%
+  mutate(text = gsub("?(f|ht)tp(s?)://(.*)[.][a-zA-Z0-9/]+", "", text)) %>%
+  unnest_tokens("word", text, token = "ngrams", n = 2) %>%
+  separate(word, c("word1", "word2")) %>%
+  na.omit() %>%
+  # międzynarodowe stop words
+  filter(!word1 %in% unlist(stopwords::data_stopwords_stopwordsiso)) %>%
+  filter(!word2 %in% unlist(stopwords::data_stopwords_stopwordsiso)) %>%
+  # dedykkowane stopwords
+  filter(!word1 %in% dedicated_stop_words) %>%
+  filter(!word2 %in% dedicated_stop_words) %>%
+  unite(word, word1, word2, sep = " ")
+
+
+
+top_langs <- top_langs %>% filter(lang != "und") %>% top_n(9, n) %>% pull(lang)
+
+
+p7b <- biwords %>%
+  filter(lang %in% top_langs) %>%
+  count(lang, word) %>%
+  ungroup() %>%
+  group_by(lang) %>%
+  mutate(p = 100*n/sum(n)) %>%
+  ungroup() %>%
+  group_by(lang) %>%
+  top_n(11, n) %>%
+  filter(n > min(n)) %>%
+  ungroup() %>%
+  arrange(desc(word)) %>%
+  mutate(word = fct_inorder(word),
+         lang = factor(lang, levels = top_langs)) %>%
+  ggplot(aes(word, p, fill = lang)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  facet_wrap(~lang, scales = "free_y") +
+  labs(y = "% words from tweets written in a given language", x = "",
+       title = "Most popular bi-words in tweets from individual languages",
+       subtitle = paste0(mecz, toupper(twitter_query_tw)))
+
+
+
 words_cloud <- words %>%
   count(word, lang) %>%
   group_by(word) %>%
@@ -356,20 +420,30 @@ words_cloud <- words %>%
 
 png("pics/p6.png", width=10, height=10, units="in", res=100)
 wordcloud(words_cloud$word, words_cloud$n,
-          max.words = 150, min.freq = quantile(words_cloud$n, 0.25),
+          max.words = 100, min.freq = quantile(words_cloud$n, 0.25),
           scale = c(2.8, 1.2),
           colors = colorRampPalette(c("#8c96c6", "#8c6bb1", "#88419d", "#810f7c", "#4d004b"))(16),
           random.color = FALSE)
-title(paste0("The most popular words in tweets from the hashtags ", twitter_query_tw))
+title(paste0("100 most popular words in tweets from the hashtags ", twitter_query_tw))
 dev.off()
+
+biwords_cloud <- biwords %>% count(word)
+
+png("pics/p6b.png", width=10, height=10, units="in", res=100)
+wordcloud(biwords_cloud$word, biwords_cloud$n,
+          max.words = 100, min.freq = quantile(biwords_cloud$n, 0.25),
+          scale = c(2.2, 0.8),
+          colors = colorRampPalette(c("#8c96c6", "#8c6bb1", "#88419d", "#810f7c", "#4d004b"))(16),
+          random.color = FALSE)
+title(paste0("100 most popular bi-words in tweets from the hashtags ", twitter_query_tw))
+dev.off()
+
 
 words <- words %>%
   count(word, lang) %>%
   group_by(lang) %>%
   mutate(nlang = sum(n)) %>%
   ungroup()
-
-top_langs <- top_langs %>% filter(lang != "und") %>% top_n(9, n) %>% pull(lang)
 
 p7 <- words %>%
   # bez szukanego tagu
@@ -389,7 +463,7 @@ p7 <- words %>%
   coord_flip() +
   facet_wrap(~lang, scales = "free_y") +
   labs(y = "% words from tweets written in a given language", x = "",
-       title = "Most popular words in tweets from individual languages (most popular)",
+       title = "Most popular words in tweets from individual languages",
        subtitle = paste0(mecz, toupper(twitter_query_tw)))
 
 
@@ -401,36 +475,45 @@ if(!is.null(p1)) {
 }
 
 if(!is.null(p2)) {
-  ggsave("pics/p2.png", plot = p2, width = 12, height = 9, units = "in", dpi = 100)
-  #  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": z jakich miast pochodzą tweety?"), media = "pics/p2.png")
+  # ggsave("pics/p2.png", plot = p2, width = 12, height = 9, units = "in", dpi = 100)
+  # if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": z jakich miast pochodzą tweety?"), media = "pics/p2.png")
 }
 
 if(!is.null(p3)) {
-  ggsave("pics/p3.png", plot = p3, width = 12, height = 9, units = "in", dpi = 100)
+  # ggsave("pics/p3.png", plot = p3, width = 12, height = 9, units = "in", dpi = 100)
   # if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": What countries do tweets come from?\n#worldcup2018 #worldcup"), media = "pics/p3.png")
 }
 
 if(!is.null(p4)) {
-  ggsave("pics/p4.png", plot = p4, width = 12, height = 9, units = "in", dpi = 100)
+  # ggsave("pics/p4.png", plot = p4, width = 12, height = 9, units = "in", dpi = 100)
   # if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": What places do tweets come from?\n#worldcup2018 #worldcup"), media = "pics/p4.png")
 }
 
 if(!is.null(p5)) {
-  ggsave("pics/p5.png", plot = p5, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": What language are tweets written in?\n#worldcup2018 #worldcup"), media = "pics/p5.png")
+  # ggsave("pics/p5.png", plot = p5, width = 12, height = 9, units = "in", dpi = 100)
+  # if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": What language are tweets written in?\n#worldcup2018 #worldcup"), media = "pics/p5.png")
 }
 
 if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the most popular words in tweets\n#worldcup2018 #worldcup"), media = "pics/p6.png")
+
+if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the most popular bi-words in tweets\n#worldcup2018 #worldcup"), media = "pics/p6b.png")
 
 if(!is.null(p7)) {
   ggsave("pics/p7.png", plot = p7, width = 12, height = 9, units = "in", dpi = 100)
   if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the most popular words in individual languages\n#worldcup2018 #worldcup"), media = "pics/p7.png")
 }
 
+if(!is.null(p7b)) {
+  ggsave("pics/p7b.png", plot = p7b, width = 12, height = 9, units = "in", dpi = 100)
+  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the most popular bi-words in individual languages\n#worldcup2018 #worldcup"), media = "pics/p7b.png")
+}
+
+
 if(!is.null(p8)) {
   ggsave("pics/p8.png", plot = p8, width = 12, height = 9, units = "in", dpi = 100)
   if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the most popular words over time\n#worldcup2018 #worldcup"), media = "pics/p8.png")
 }
+
 
 if(!is.null(p9)) {
   ggsave("pics/p9.png", plot = p9, width = 12, height = 9, units = "in", dpi = 100)
