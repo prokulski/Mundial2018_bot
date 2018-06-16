@@ -14,8 +14,8 @@ momenty_show <- FALSE
 # czy skrypt opalony z shella?
 if(length(commandArgs()) == 2) {
   # nie - podajemy parametry z ręki
-  twitter_query <- "#poresp"
-  twitter_query_rev <- "#esppor"
+  twitter_query <- "#fraaus"
+  twitter_query_rev <- paste0("#", str_sub(twitter_query, 5, 7), str_sub(twitter_query, 2, 4))
   twitter_query_tw <- paste0(twitter_query, " & ", twitter_query_rev)
 
   mecz <- "Match Portugal #POR - Spain #ESP on hashtag "
@@ -32,10 +32,10 @@ if(length(commandArgs()) == 2) {
 
   # post twtiter
   #mecz <- "Match Portugal #POR - Spain #ESP on hashtag "
-  mecz <- paste0("Match ", args[1], " #", toupper(args[3]), " - ", args[2], " #", toupper(args[4]), " on hashtag ")
+  mecz <- paste0("Match ", args[1], " #", toupper(args[3]), " - ", args[2], " #", toupper(args[4]), " on hashtags ")
 
   #mecz_tw <- "Portugal #POR - Spain #ESP on hashtags "
-  mecz_tw <- paste0(args[1], " #", toupper(args[3]), " - ", args[2], " #", toupper(args[4]), " on hashtag ")
+  mecz_tw <- paste0(args[1], " #", toupper(args[3]), " - ", args[2], " #", toupper(args[4]), " on hashtags ")
 
   #twitter_query <- "#poresp"
   twitter_query <- paste0("#", tolower(args[3]), tolower(args[4]))
@@ -113,7 +113,8 @@ tweets <- list.files() %>%
   readRDS() %>%
   filter(!grepl(spam_strings[[1]], text)) %>%
   filter(!grepl(spam_strings[[2]], text)) %>%
-  filter(!grepl(spam_strings[[3]], text))
+  filter(!grepl(spam_strings[[3]], text)) %>%
+  distinct(status_id, .keep_all = TRUE)
 
 
 # sprzatamy folder na obrazki
@@ -229,6 +230,7 @@ if(nrow(places) != 0) {
 places_geo <- tweets %>%
   select(status_id, geo_coords) %>%
   na.omit() %>%
+  distinct(status_id, .keep_all = TRUE) %>%
   unnest(geo_coords) %>%
   group_by(status_id) %>%
   mutate(p = c("lat", "long")) %>%
