@@ -89,3 +89,8 @@ while(Sys.time() < end_time) {
       " i zjebało się błędem:\n", twitter_stream$error, "\n\n"))
   }
 }
+
+# na koniec odkładamy plik do archiwum
+saveRDS(tweets_full,
+        file = paste0("arch/", toupper(args[1]), "-", toupper(args[2]), ".RDS"))
+
