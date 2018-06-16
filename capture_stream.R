@@ -70,12 +70,19 @@ while(Sys.time() < end_time) {
     tweets_full <- bind_rows(tweets_full, tweets)
 
     # zapisz w RDS z aktualną godziną
-    saveRDS(tweets_full, file = paste0("twitter_data/",
-                                       format(Sys.time(),
-                                              "%Y_%m_%d_%H%M_twitts_full.RDS")))
+    file_name <- paste0("twitter_data/", format(Sys.time(), "%Y_%m_%d_%H%M_twitts_full.RDS"))
+    saveRDS(tweets_full, file = file_name)
 
     # kasujemy pliki zebrane w sstreamingu
     file_delete("tweets.json")
+
+    # kasujemy stare pliki rds
+    files_to_del <- list.files("twitter_data/", pattern = "*.RDS") %>%
+      paste0("twitter_data/", .) %>%
+      .[. != file_name]
+
+     if(length(files_to_del) != 0) file_delete(files_to_del)
+
   } else {
     cat(paste0(
       "Jest: ", format(Sys.time(), "%H:%M"),
