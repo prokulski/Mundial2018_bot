@@ -5,19 +5,34 @@
 # args[4] # 2nd team
 # args[5] # post tweet? 0/1
 
+library(methods)
+library(tidyverse)
+library(lubridate)
+library(tidytext)
+library(ggthemes)
+library(wordcloud)
+library(fs)
+library(rtweet)
+library(ggrepel)
+library(jsonlite)
 
 setwd("~/RProjects/Mundial2018_twitter_stream/twitter_data/")
 rm(list = ls())
+
+
+rtag1 <- ifelse(rnorm(1) > 2, " #rstats used!", "")
+rtag2 <- ifelse(rnorm(1) > 2, "\n#rstats magic :)", "")
+rtag3 <- ifelse(rnorm(1) > 2, "\nMade with #rstats <3", "")
 
 momenty_show <- FALSE
 
 # czy skrypt opalony z shella?
 if(length(commandArgs()) == 2) {
 
-  teamA_f <- "Peru" # 1st team name
-  teamB_f <- "Denmark" # 2nd team name
-  teamA_s <- "PER" # 1st team
-  teamB_s <- "DEN" # 2nd team
+  teamA_f <- "Croatia" # 1st team name
+  teamB_f <- "Nigeria" # 2nd team name
+  teamA_s <- "CRO" # 1st team
+  teamB_s <- "NGA" # 2nd team
 
   post_tweets <- FALSE
 
@@ -58,25 +73,34 @@ cat(paste0("twitter_query_rev = '", twitter_query_rev, "'\n"))
 cat(paste0("twitter_query_tw = '", twitter_query_tw, "'\n"))
 cat(paste0("post tweet? = '", post_tweets, "'\n"))
 
-stop_tags <- tolower(c(teamA_f, teamB_f, teamA_s, teamB_s, twitter_query, twitter_query_rev))
+teamA_f_split <- teamA_f %>% str_split(" ") %>% unlist()
+teamB_f_split <- teamB_f %>% str_split(" ") %>% unlist()
+
+stop_tags <- unique(tolower(c(teamA_f, teamB_f, teamA_s, teamB_s,
+                       teamA_f_split, teamB_f_split,
+                       twitter_query, twitter_query_rev)))
 
 
 
-library(methods)
-library(tidyverse)
-library(lubridate)
-library(tidytext)
-library(ggthemes)
-library(wordcloud)
-library(fs)
-library(rtweet)
-library(ggrepel)
 
-dedicated_stop_words <- c("https", "t.co",
+# wynik, jaki wynik?
+fixtures_url <- "http://api.football-data.org/v1/competitions/467/fixtures"
+fixtures_df <- fromJSON(fixtures_url, flatten = TRUE)$fixtures
+match_df <- fixtures_df %>% filter(homeTeamName == teamA_f, awayTeamName == teamB_f)
+match_result_df <- fromJSON(match_df$`_links.self.href`, flatten = TRUE)$fixture
+match_result_str <- case_when(
+  match_df$status == "IN_PLAY" ~ paste0(match_result_df$result$goalsHomeTeam, ":", match_result_df$result$goalsAwayTeam, " (in play)"),
+  match_df$status == "FINISHED" ~ paste0(match_result_df$result$goalsHomeTeam, ":", match_result_df$result$goalsAwayTeam, " (finished)"),
+  match_df$status == "TIMED" ~ "")
+
+
+
+dedicated_stop_words <- c("https", "t.co", "manofthematch", "budweiser",
                           "match", "game", "team",
                           "worldcuprussia2018", "worldcup2018", "worldcup", "worldcup18",
                           "fifaworldcup", "fifaworldcup2018",
-                          "rusia2018", "russia2018", "copa2018", "cm2018",
+                          "rusia2018", "russia2018",
+                          "copa2018", "cm2018",
                           "wm2018", "mundial", "mundial2018", "mundial18",
                           gsub("#", "", stop_tags))
 
@@ -91,6 +115,9 @@ momenty <- tribble(~time, ~co,
                    "2018-06-15 21:52", "End of 2nd half"
 ) %>%
   mutate(time = ymd_hm(time, tz = "Europe/Warsaw"))
+
+
+caption_str <- "(c) 2018, Łukasz Prokulski, @rstatspl, fb.com/DaneAnalizy"
 
 Sys.setenv(TWITTER_PAT="/home/lemur/RProjects/Mundial2018_twitter_stream/twitter_token.rdata")
 
@@ -150,7 +177,7 @@ p1 <- tweets %>%
   labs(x = "", y = "", fill = "RT?",
        title = "Number of tweets",
        subtitle = paste0(mecz, toupper(twitter_query_tw)),
-       caption = "(c) 2018, Łukasz Prokulski, fb.com/DaneAnalizy")
+       caption = caption_str)
 
 if(momenty_show) {
   if(Sys.time() > min(momenty$time)) {
@@ -179,7 +206,7 @@ p5 <- top_langs %>%
   labs(x = "", y = "", fill = "",
        title = "In what language were tweets written?",
        subtitle = paste0(mecz, toupper(twitter_query_tw)),
-       caption = "(c) 2018, Łukasz Prokulski, fb.com/DaneAnalizy")
+       caption = caption_str)
 
 
 
@@ -212,7 +239,7 @@ if(nrow(places) != 0) {
          title = "What cities do tweets come from?",
          subtitle = paste0(mecz, toupper(twitter_query_tw),
                            " (only for tweets that have a given location)"),
-         caption = "(c) 2018, Łukasz Prokulski, fb.com/DaneAnalizy")
+         caption = caption_str)
 
 
 
@@ -234,7 +261,7 @@ if(nrow(places) != 0) {
          title = "What countries do tweets come from?",
          subtitle = paste0(mecz, toupper(twitter_query_tw),
                            " (only for tweets that have a given location)"),
-         caption = "(c) 2018, Łukasz Prokulski, fb.com/DaneAnalizy")
+         caption = caption_str)
 
 
 }
@@ -274,7 +301,7 @@ if(nrow(places_geo) != 0) {
          title = "What places tweets come from?",
          subtitle = paste0(mecz, toupper(twitter_query_tw),
                            " (only for tweets that have a given location)"),
-         caption = "(c) 2018, Łukasz Prokulski, fb.com/DaneAnalizy")
+         caption = caption_str)
 }
 
 # text
@@ -296,7 +323,7 @@ p8 <- words %>%
   count(created_at, word) %>%
   ungroup() %>%
   group_by(created_at) %>%
-  filter(n == max(n)) %>%
+  filter(n == max(n), n > 1) %>%
   ungroup() %>%
   mutate(created_at = with_tz(created_at, "Europe/Warsaw")) %>%
   ggplot() +
@@ -305,7 +332,7 @@ p8 <- words %>%
   labs(size = "", x = "", y = "",
        title = "The most popular words over time",
        subtitle = paste0(mecz, toupper(twitter_query_tw)),
-       caption = "(c) 2018, Łukasz Prokulski, fb.com/DaneAnalizy") +
+       caption = caption_str) +
   theme(axis.text = element_text(size = 14))
 
 
@@ -343,14 +370,14 @@ p9 <- p9_data %>%
            color = "gray10", position = position_dodge()) +
   geom_text(aes(created_at, 0.1*max(p9_data$n)+time_n_max, color = word,
                 label = ifelse(pos == 1, word, "")),
-            show.legend = FALSE, angle = 45, size = 6) +
+            show.legend = FALSE, angle = 90, size = 6) +
   theme(legend.position = "bottom", legend.direction = "horizontal",
         axis.text = element_text(size = 16)) +
-  scale_y_continuous(expand = expand_scale(mult = c(0, 0.15), add = 0)) +
+  scale_y_continuous(expand = expand_scale(mult = c(0, 0.175), add = 0)) +
   labs(x = "", y = "Number of tweets", fill = "",
        title = "Three of the most popular words in 5-minute blocks",
        subtitle = paste0(mecz, toupper(twitter_query_tw)),
-       caption = "(c) 2018, Łukasz Prokulski, fb.com/DaneAnalizy")
+       caption = caption_str)
 
 if(momenty_show) {
 
@@ -396,7 +423,9 @@ p7b <- biwords %>%
   ungroup() %>%
   group_by(lang) %>%
   top_n(11, n) %>%
-  filter(n > min(n)) %>%
+  arrange(desc(n)) %>%
+  mutate(rw = row_number()) %>%
+  filter(rw <= 10) %>%
   ungroup() %>%
   arrange(desc(word)) %>%
   mutate(word = fct_inorder(word),
@@ -471,7 +500,7 @@ p7 <- words %>%
 
 if(!is.null(p1)) {
   ggsave("pics/p1.png", plot = p1, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": number of tweets over time\n#worldcup2018 #worldcup"), media = "pics/p1.png")
+  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": number of tweets over time\n#worldcup2018 #worldcup"), media = "pics/p1.png")
 }
 
 if(!is.null(p2)) {
@@ -494,29 +523,29 @@ if(!is.null(p5)) {
   # if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": What language are tweets written in?\n#worldcup2018 #worldcup"), media = "pics/p5.png")
 }
 
-if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the most popular words in tweets\n#worldcup2018 #worldcup"), media = "pics/p6.png")
+if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular words in tweets\n#worldcup2018 #worldcup"), media = "pics/p6.png")
 
-if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the most popular bi-words in tweets\n#worldcup2018 #worldcup"), media = "pics/p6b.png")
+if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular bi-words in tweets\n#worldcup2018 #worldcup"), media = "pics/p6b.png")
 
 if(!is.null(p7)) {
   ggsave("pics/p7.png", plot = p7, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the most popular words in individual languages\n#worldcup2018 #worldcup"), media = "pics/p7.png")
+  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular words in individual languages\n#worldcup2018 #worldcup"), media = "pics/p7.png")
 }
 
 if(!is.null(p7b)) {
   ggsave("pics/p7b.png", plot = p7b, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the most popular bi-words in individual languages\n#worldcup2018 #worldcup"), media = "pics/p7b.png")
+  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular bi-words in individual languages\n#worldcup2018 #worldcup", rtag1), media = "pics/p7b.png")
 }
 
 
 if(!is.null(p8)) {
   ggsave("pics/p8.png", plot = p8, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the most popular words over time\n#worldcup2018 #worldcup"), media = "pics/p8.png")
+  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular words over time\n#worldcup2018 #worldcup", rtag2), media = "pics/p8.png")
 }
 
 
 if(!is.null(p9)) {
   ggsave("pics/p9.png", plot = p9, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": the three most popular words in 5-minute blocks\n#worldcup2018 #worldcup"), media = "pics/p9.png")
+  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the three most popular words in 5-minute blocks\n#worldcup2018 #worldcup", rtag3), media = "pics/p9.png")
 }
 
