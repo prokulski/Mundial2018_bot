@@ -1,20 +1,23 @@
-# paramety z shela
-# args[1] # 1st team name
-# args[2] # 2nd team name
-# args[3] # 1st team
-# args[4] # 2nd team
-# args[5] # post tweet? 0/1
+### TO DO
+# ogarnąć dwa tagi jednocześnie (parametry decydują które tagi bierzemy pod uwagę)
 
-library(methods)
-library(tidyverse)
-library(lubridate)
-library(tidytext)
-library(ggthemes)
-library(wordcloud)
-library(fs)
-library(rtweet)
-library(ggrepel)
-library(jsonlite)
+
+# paramety z shela
+# args[1] # post tweet?
+# args[2] # 1st team iso
+# args[3] # 2nd team iso
+
+
+suppressPackageStartupMessages(library(methods))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(lubridate))
+suppressPackageStartupMessages(library(tidytext))
+suppressPackageStartupMessages(library(ggthemes))
+suppressPackageStartupMessages(library(wordcloud))
+suppressPackageStartupMessages(library(fs))
+suppressPackageStartupMessages(library(rtweet))
+suppressPackageStartupMessages(library(ggrepel))
+suppressPackageStartupMessages(library(jsonlite))
 
 setwd("~/RProjects/Mundial2018_twitter_stream/twitter_data/")
 rm(list = ls())
@@ -25,14 +28,14 @@ rtag2 <- ifelse(rnorm(1) > 2, "\n#rstats magic :)", "")
 rtag3 <- ifelse(rnorm(1) > 2, "\nMade with #rstats <3", "")
 
 momenty_show <- FALSE
+# slownik skrótów
+teams <- read_csv("../dicts/teams.csv", col_types = "cc")
 
 # czy skrypt opalony z shella?
 if(length(commandArgs()) == 2) {
 
-  teamA_f <- "Croatia" # 1st team name
-  teamB_f <- "Nigeria" # 2nd team name
-  teamA_s <- "CRO" # 1st team
-  teamB_s <- "NGA" # 2nd team
+  teamA_s <- "SWE" # 1st team
+  teamB_s <- "KOR" # 2nd team
 
   post_tweets <- FALSE
 
@@ -42,14 +45,14 @@ if(length(commandArgs()) == 2) {
   options(echo=FALSE)
   args <- commandArgs(trailingOnly = TRUE)
 
-  teamA_f <- args[1] # 1st team name
-  teamB_f <- args[2] # 2nd team name
-  teamA_s <- args[3] # 1st team
-  teamB_s <- args[4] # 2nd team
+  teamA_s <- args[2] # 1st team name
+  teamB_s <- args[3] # 2nd team name
 
-  post_tweets <- ifelse(as.numeric(args[5]) == 0, FALSE, TRUE)
+  post_tweets <- ifelse(as.numeric(args[1]) == 0, FALSE, TRUE)
 }
 
+teamA_f <- as.character(teams[teams$iso == teamA_s, "country"]) # 1st team name
+teamB_f <- as.character(teams[teams$iso == teamB_s, "country"]) # 2nd team name
 
 # mecz <- "Match Portugal #POR - Spain #ESP on hashtag "
 mecz <- paste0("Match ", teamA_f, " #", toupper(teamA_s), " - ", teamB_f, " #", toupper(teamB_s), " on hashtags ")
@@ -66,12 +69,14 @@ twitter_query_rev <- paste0("#", tolower(teamB_s), tolower(teamA_s))
 #twitter_query_tw <- paste0(twitter_query, " & ", twitter_query_rev)
 twitter_query_tw <- paste0(twitter_query, " & ", twitter_query_rev)
 
-cat(paste0("mecz = '", mecz, "'\n"))
-cat(paste0("mecz_tw = '", mecz_tw, "'\n"))
-cat(paste0("twitter_query = '", twitter_query, "'\n"))
-cat(paste0("twitter_query_rev = '", twitter_query_rev, "'\n"))
-cat(paste0("twitter_query_tw = '", twitter_query_tw, "'\n"))
-cat(paste0("post tweet? = '", post_tweets, "'\n"))
+cat(paste0("\tmecz = '", mecz, "'\n"))
+cat(paste0("\tmecz_tw = '", mecz_tw, "'\n"))
+cat(paste0("\ttwitter_query = '", twitter_query, "'\n"))
+cat(paste0("\ttwitter_query_rev = '", twitter_query_rev, "'\n"))
+cat(paste0("\ttwitter_query_tw = '", twitter_query_tw, "'\n"))
+cat(paste0("\tpost tweet? = '", post_tweets, "'\n\n"))
+
+
 
 teamA_f_split <- teamA_f %>% str_split(" ") %>% unlist()
 teamB_f_split <- teamB_f %>% str_split(" ") %>% unlist()
@@ -81,19 +86,24 @@ stop_tags <- unique(tolower(c(teamA_f, teamB_f, teamA_s, teamB_s,
                        twitter_query, twitter_query_rev)))
 
 
-
-
 # wynik, jaki wynik?
+match_result_str <- ""
+fromJSON_safe <- safely(fromJSON)
 fixtures_url <- "http://api.football-data.org/v1/competitions/467/fixtures"
-fixtures_df <- fromJSON(fixtures_url, flatten = TRUE)$fixtures
-match_df <- fixtures_df %>% filter(homeTeamName == teamA_f, awayTeamName == teamB_f)
-match_result_df <- fromJSON(match_df$`_links.self.href`, flatten = TRUE)$fixture
-match_result_str <- case_when(
-  match_df$status == "IN_PLAY" ~ paste0(match_result_df$result$goalsHomeTeam, ":", match_result_df$result$goalsAwayTeam, " (in play)"),
-  match_df$status == "FINISHED" ~ paste0(match_result_df$result$goalsHomeTeam, ":", match_result_df$result$goalsAwayTeam, " (finished)"),
-  match_df$status == "TIMED" ~ "")
+fixtures_df <- fromJSON_safe(fixtures_url, flatten = TRUE)
+if(!is.null(fixtures_df$result)) {
+  match_df <- fixtures_df$result$fixtures %>% filter(homeTeamName == teamA_f, awayTeamName == teamB_f)
+  match_result_df <- fromJSON_safe(match_df$`_links.self.href`, flatten = TRUE)
+  if(!is.null(match_result_df$result)) {
+    match_result_df <- match_result_df$result$fixture
+    match_result_str <- case_when(
+      match_df$status == "IN_PLAY" ~ paste0(match_result_df$result$goalsHomeTeam, ":", match_result_df$result$goalsAwayTeam, " (in play)"),
+      match_df$status == "FINISHED" ~ paste0(match_result_df$result$goalsHomeTeam, ":", match_result_df$result$goalsAwayTeam, " (finished)"),
+      match_df$status == "TIMED" ~ "")
+  }
+}
 
-
+rm(fixtures_url, fixtures_df, match_result_df, match_df)
 
 dedicated_stop_words <- c("https", "t.co", "manofthematch", "budweiser",
                           "match", "game", "team",
@@ -154,7 +164,10 @@ tweets <- list.files() %>%
   filter(!grepl(spam_strings[[1]], text)) %>%
   filter(!grepl(spam_strings[[2]], text)) %>%
   filter(!grepl(spam_strings[[3]], text)) %>%
-  distinct(status_id, .keep_all = TRUE)
+  distinct(status_id, .keep_all = TRUE) %>%
+  # zostawiamy tweety z tagiem meczu
+  filter(grepl(paste0(twitter_query, "|", twitter_query_rev),
+               text, ignore.case = TRUE))
 
 
 # sprzatamy folder na obrazki

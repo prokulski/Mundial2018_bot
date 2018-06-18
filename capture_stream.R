@@ -1,30 +1,54 @@
 # paramety z shela
-# args[1] # 1st team
-# args[2] # 2nd team
-# args[3] # end hour:min
+# args[1] # end hour:min
+# args[2] # 1st tag
+# args[3] # 2nd tag
+
+suppressPackageStartupMessages(library(methods))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(lubridate))
+suppressPackageStartupMessages(library(rtweet))
+suppressPackageStartupMessages(library(fs))
+
+Sys.setenv(TWITTER_PAT="/home/lemur/RProjects/Mundial2018_twitter_stream/twitter_token.rdata")
+
 
 options(echo=FALSE)
 args <- commandArgs(trailingOnly = TRUE)
 
+# args <- c("CRC", "SRB", "16:15")
 
 setwd("~/RProjects/Mundial2018_twitter_stream/")
 
-twitter_query <- paste0("#", tolower(args[1]), tolower(args[2]))
-twitter_query_rev <- paste0("#", tolower(args[2]), tolower(args[1]))
+# 1 tag
+if(length(commandArgs()) == 7) {
 
-twitter_query <- paste0(twitter_query, ",", twitter_query_rev)
-end_time <- paste0(format(Sys.Date(), "%Y-%m-%d "), args[3], ":00")
+  tag1 <- str_sub(args[2], 1, 3)
+  tag2 <- str_sub(args[2], 4, 6)
+  twitter_query <- paste0("#", tag1, tag2, ",#", tag2, tag1)
+  rm(tag1, tag2)
+}
 
-cat(paste0("twitter_query = '", twitter_query, "'\n"))
-cat(paste0("end_time = '", end_time, "'\n"))
+# 2 tagi
+if(length(commandArgs()) == 8) {
 
-library(methods)
-library(tidyverse)
-library(lubridate)
-library(rtweet)
-library(fs)
+  tag1 <- str_sub(args[2], 1, 3)
+  tag2 <- str_sub(args[2], 4, 6)
+  tag3 <- str_sub(args[3], 1, 3)
+  tag4 <- str_sub(args[3], 4, 6)
+  twitter_query <- paste0("#", tag1, tag2, ",#", tag2, tag1,
+                          ",#", tag3, tag4, ",#", tag4, tag3)
+  rm(tag1, tag2, tag3, tag4)
+}
 
-Sys.setenv(TWITTER_PAT="/home/lemur/RProjects/Mundial2018_twitter_stream/twitter_token.rdata")
+twitter_query <- str_to_lower(twitter_query)
+
+
+# do kiedy zbieramy tweety?
+end_time <- paste0(format(Sys.Date(), "%Y-%m-%d "), args[1], ":00")
+
+cat(paste0("\ttwitter_query = '", twitter_query, "'\n"))
+cat(paste0("\tend_time = '", end_time, "'\n\n"))
+
 
 
 stream_tweets_safe <- safely(stream_tweets)
@@ -48,14 +72,11 @@ while(Sys.time() < end_time) {
     file = "tweets"
   )
 
-
   # jeśli bez błędów to jedziemy
   if(!is.null(twitter_stream$result)) {
 
-    twitter_stream <- twitter_stream$result
-
     # wybierze tylko potrzebne później kolumny
-    tweets <- twitter_stream %>%
+    tweets <- twitter_stream$result %>%
       select(status_id, created_at,
              screen_name,
              text, is_retweet, lang,
@@ -92,5 +113,5 @@ while(Sys.time() < end_time) {
 
 # na koniec odkładamy plik do archiwum
 saveRDS(tweets_full,
-        file = paste0("arch/", toupper(args[1]), "-", toupper(args[2]), ".RDS"))
+        file = paste0("arch/", gsub("[#,]", "", twitter_query), ".RDS"))
 
