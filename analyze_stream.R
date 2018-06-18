@@ -22,6 +22,7 @@ suppressPackageStartupMessages(library(jsonlite))
 setwd("~/RProjects/Mundial2018_twitter_stream/twitter_data/")
 rm(list = ls())
 
+extra_stop_tags <- ""
 
 rtag1 <- ifelse(rnorm(1) > 2, " #rstats used!", "")
 rtag2 <- ifelse(rnorm(1) > 2, "\n#rstats magic :)", "")
@@ -112,7 +113,7 @@ dedicated_stop_words <- c("https", "t.co", "manofthematch", "budweiser",
                           "rusia2018", "russia2018",
                           "copa2018", "cm2018",
                           "wm2018", "mundial", "mundial2018", "mundial18",
-                          gsub("#", "", stop_tags))
+                          gsub("#", "", stop_tags), extra_stop_tags)
 
 
 spam_strings <- c("Tap below to vote now", "You can vote for your",
@@ -340,8 +341,10 @@ p8 <- words %>%
   ungroup() %>%
   mutate(created_at = with_tz(created_at, "Europe/Warsaw")) %>%
   ggplot() +
-  geom_point(aes(created_at, word, size = n),
-             color = "red", alpha = 0.25, show.legend = FALSE) +
+  geom_jitter(aes(created_at, word, size = n),
+             color = "red", alpha = 0.25,
+             height = 0.1, width = 0,
+             show.legend = FALSE) +
   labs(size = "", x = "", y = "",
        title = "The most popular words over time",
        subtitle = paste0(mecz, toupper(twitter_query_tw)),

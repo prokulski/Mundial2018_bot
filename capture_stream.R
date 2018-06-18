@@ -25,6 +25,7 @@ if(length(commandArgs()) == 7) {
   tag1 <- str_sub(args[2], 1, 3)
   tag2 <- str_sub(args[2], 4, 6)
   twitter_query <- paste0("#", tag1, tag2, ",#", tag2, tag1)
+  data_file_name <- paste0(tag1, "-", tag2)
   rm(tag1, tag2)
 }
 
@@ -37,6 +38,7 @@ if(length(commandArgs()) == 8) {
   tag4 <- str_sub(args[3], 4, 6)
   twitter_query <- paste0("#", tag1, tag2, ",#", tag2, tag1,
                           ",#", tag3, tag4, ",#", tag4, tag3)
+  data_file_name <- paste0(tag1, "-", tag2, "_", tag3, "-", tag4)
   rm(tag1, tag2, tag3, tag4)
 }
 
@@ -113,5 +115,5 @@ while(Sys.time() < end_time) {
 
 # na koniec odkładamy plik do archiwum
 saveRDS(tweets_full,
-        file = paste0("arch/", gsub("[#,]", "", twitter_query), ".RDS"))
+        file = paste0("arch/", data_file_name, ".RDS"))
 
