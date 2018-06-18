@@ -42,36 +42,21 @@ setwd("~/RProjects/Mundial2018_twitter_stream/twitter_data/")
 plot_shit <- NULL
 plot_players <- NULL
 
-# szukamy najnowszego pliku w folderze
-tweets <- list.files() %>%
-  tibble(file = .) %>%
-  mutate(mktime = lapply(file, file.mtime)) %>%
-  unnest() %>%
-  filter(mktime == max(mktime)) %>%
-  pull(file) %>%
-  # wczytujemy najnowszy
-  readRDS() %>%
-  distinct(status_id, .keep_all = TRUE)
-
-
-setwd("..")
+player_names <- read_csv("../dicts/players.csv", col_types = "cc") %>% mutate(slowo = str_to_lower(slowo))
+teams <- read_csv("../dicts/teams.csv", col_types = "cc")
 
 if(dict == "pl") {
-  shit_words <- read_csv("dicts/shit_words.csv", col_types = "cc")
-  tweets <- tweets %>% filter(lang == "pl")
+  shit_words <- read_csv("../dicts/shit_words.csv", col_types = "cc")
 } else {
-  shit_words <- read_csv("dicts/shit_words_eng.csv", col_types = "cc")
+  shit_words <- read_csv("../dicts/shit_words_eng.csv", col_types = "cc")
 }
-
-player_names <- read_csv("dicts/players.csv", col_types = "cc") %>% mutate(slowo = str_to_lower(slowo))
-teams <- read_csv("dicts/teams.csv", col_types = "cc")
 
 
 # czy skrypt opalony z shella?
 if(length(commandArgs()) == 2) {
 
-  teamA_s <- "SWE" # 1st team
-  teamB_s <- "KOR" # 2nd team
+  teamA_s <- "TUN" # 1st team
+  teamB_s <- "ENG" # 2nd team
 
   post_tweets <- TRUE
 
@@ -80,6 +65,12 @@ if(length(commandArgs()) == 2) {
   # skrypt z shela
   options(echo=FALSE)
   args <- commandArgs(trailingOnly = TRUE)
+
+  # jak za mało parametrów to nie ma co się bawić dalej :)
+    if(length(args) != 4) {
+      cat("You need mode parameters: post dict teamA teamB\n")
+      quit()
+    }
 
   teamA_s <- args[3] # 1st team name
   teamB_s <- args[4] # 2nd team name
@@ -106,6 +97,25 @@ twitter_query_rev <- paste0("#", tolower(teamB_s), tolower(teamA_s))
 twitter_query_tw <- paste0(twitter_query, " & ", twitter_query_rev)
 
 caption_str <- "(c) 2018, Łukasz Prokulski, @rstatspl, fb.com/DaneAnalizy"
+
+
+# szukamy najnowszego pliku w folderze
+tweets <- list.files() %>%
+  tibble(file = .) %>%
+  mutate(mktime = lapply(file, file.mtime)) %>%
+  unnest() %>%
+  filter(mktime == max(mktime)) %>%
+  pull(file) %>%
+  # wczytujemy najnowszy
+  readRDS() %>%
+  distinct(status_id, .keep_all = TRUE)
+
+
+setwd("..")
+
+if(dict == "pl") {
+  tweets <- tweets %>% filter(lang == "pl")
+}
 
 
 get_shit_word_tweets <- function(f_shit_word) {
@@ -150,14 +160,18 @@ player_names_df <- player_names$slowo %>%
   distinct(status_id, .keep_all = TRUE)
 
 
+
 # wystąpienia brzydkich słów
 plot_shit <- shit_words_df %>%
   count(shit_word, created_at) %>%
+  arrange(desc(shit_word)) %>%
+  mutate(shit_word = fct_inorder(shit_word)) %>%
   ggplot() +
-  geom_jitter(aes(created_at, shit_word, size = n),
-              color = "red", alpha = 0.7,
+  geom_jitter(aes(created_at, shit_word, size = n, alpha = n),
+              color = "red",
               height = 0.1, width = 0,
-              show.legend = FALSE)
+              show.legend = FALSE) +
+  scale_alpha_continuous(range = c(0.4, 0.7))
 
 if(dict == "pl") {
   plot_shit <- plot_shit + labs(title = "Użycie \"brzydkich wyrazów\"", x = "", y = "",
@@ -173,11 +187,13 @@ if(dict == "pl") {
 # to wykresem ggjoy?
 plot_players <- player_names_df %>%
   count(player_name, created_at) %>%
-  ggplot() +
-  geom_jitter(aes(created_at, player_name, size = n),
-              color = "red", alpha = 0.7,
+  arrange(desc(player_name)) %>%
+  mutate(player_name = fct_inorder(player_name)) %>%  ggplot() +
+  geom_jitter(aes(created_at, player_name,  size = n, alpha = n),
+              color = "red",
               height = 0.1, width = 0,
-              show.legend = FALSE)
+              show.legend = FALSE) +
+  scale_alpha_continuous(range = c(0.4, 0.7))
 
 if(dict == "pl") {
   plot_players <- plot_players + labs(title = "Wymieniane osoby", x = "", y = "",

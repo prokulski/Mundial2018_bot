@@ -24,9 +24,10 @@ rm(list = ls())
 
 extra_stop_tags <- ""
 
-rtag1 <- ifelse(rnorm(1) > 2, " #rstats used!", "")
-rtag2 <- ifelse(rnorm(1) > 2, "\n#rstats magic :)", "")
-rtag3 <- ifelse(rnorm(1) > 2, "\nMade with #rstats <3", "")
+# losowo (ok 20% przypadków) dodaj tag #rstats - dla fejmu :)
+rtag1 <- ifelse(rnorm(1) > .8, " #rstats used!", "")
+rtag2 <- ifelse(rnorm(1) > .8, "\n#rstat  magic :)", "")
+rtag3 <- ifelse(rnorm(1) > .8, "\nMade with #rstats <3", "")
 
 momenty_show <- FALSE
 # slownik skrótów
