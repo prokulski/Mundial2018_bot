@@ -13,7 +13,7 @@
 
 rm(list = ls())
 
-dict <- "pl"
+dict <- "eng"
 
 suppressPackageStartupMessages(library(methods))
 suppressPackageStartupMessages(library(tidyverse))
@@ -45,18 +45,13 @@ plot_players <- NULL
 player_names <- read_csv("../dicts/players.csv", col_types = "ccc") %>% mutate(slowo = str_to_lower(slowo))
 teams <- read_csv("../dicts/teams.csv", col_types = "cc")
 
-if(dict == "pl") {
-  shit_words <- read_csv("../dicts/shit_words.csv", col_types = "cc")
-} else {
-  shit_words <- read_csv("../dicts/shit_words_eng.csv", col_types = "cc")
-}
 
 
 # czy skrypt opalony z shella?
 if(length(commandArgs()) == 2) {
 
-  teamA_s <- "POL" # 1st team
-  teamB_s <- "SEN" # 2nd team
+  teamA_s <- "RUS" # 1st team
+  teamB_s <- "EGY" # 2nd team
 
   post_tweets <- FALSE
 
@@ -98,6 +93,11 @@ twitter_query_tw <- paste0(twitter_query, " & ", twitter_query_rev)
 
 caption_str <- "(c) 2018, Łukasz Prokulski, @rstatspl, fb.com/DaneAnalizy"
 
+if(dict == "pl") {
+  shit_words <- read_csv("../dicts/shit_words.csv", col_types = "cc")
+} else {
+  shit_words <- read_csv("../dicts/shit_words_eng.csv", col_types = "cc")
+}
 
 # szukamy najnowszego pliku w folderze
 tweets <- list.files() %>%
