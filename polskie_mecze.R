@@ -13,7 +13,7 @@
 
 rm(list = ls())
 
-dict <- "eng"
+dict <- "pl"
 
 suppressPackageStartupMessages(library(methods))
 suppressPackageStartupMessages(library(tidyverse))
@@ -42,7 +42,7 @@ setwd("~/RProjects/Mundial2018_twitter_stream/twitter_data/")
 plot_shit <- NULL
 plot_players <- NULL
 
-player_names <- read_csv("../dicts/players.csv", col_types = "cc") %>% mutate(slowo = str_to_lower(slowo))
+player_names <- read_csv("../dicts/players.csv", col_types = "ccc") %>% mutate(slowo = str_to_lower(slowo))
 teams <- read_csv("../dicts/teams.csv", col_types = "cc")
 
 if(dict == "pl") {
@@ -55,10 +55,10 @@ if(dict == "pl") {
 # czy skrypt opalony z shella?
 if(length(commandArgs()) == 2) {
 
-  teamA_s <- "TUN" # 1st team
-  teamB_s <- "ENG" # 2nd team
+  teamA_s <- "POL" # 1st team
+  teamB_s <- "SEN" # 2nd team
 
-  post_tweets <- TRUE
+  post_tweets <- FALSE
 
 } else {
 
@@ -108,6 +108,7 @@ tweets <- list.files() %>%
   pull(file) %>%
   # wczytujemy najnowszy
   readRDS() %>%
+  filter(!is_retweet) %>%
   distinct(status_id, .keep_all = TRUE)
 
 
@@ -229,6 +230,7 @@ if(nrow(shit_players) != 0) {
     count(shit_word, player_name) %>%
     ggplot() +
     geom_tile(aes(shit_word, player_name, fill = n), color = "gray20") +
+    geom_text(aes(shit_word, player_name, label = n), color = "gray20") +
     scale_fill_distiller(palette = "YlOrRd", direction = -1)
 
   # twitujemy tylko dla jezyka polskiego - ten z kolei tylko dla meczy Polaków ma sens
@@ -240,4 +242,26 @@ if(nrow(shit_players) != 0) {
     ggsave("pics/plot_shit_players.png", plot = plot_shit_players, width = 12, height = 9, units = "in", dpi = 100)
     if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": \"brzydkie wyrazy\" przy osobach użyte w jednym tweecie\n#worldcup2018 #worldcup"), media = "pics/plot_shit_players.png")
   }
+}
+
+
+if(dict == "pl") {
+
+  person_populatiry <- tweets %>%
+    unnest_tokens(word, text) %>%
+    left_join(player_names, by = c("word" = "slowo")) %>%
+    count(zawodnik, typ, sort = TRUE) %>%
+    filter(zawodnik %in% player_names$zawodnik) %>%
+    mutate(zawodnik = fct_inorder(str_to_title(zawodnik))) %>%
+    ggplot() +
+    geom_col(aes(zawodnik, n, fill = typ), color = "gray20",
+             show.legend = FALSE) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0)) +
+    labs(title = "Popularność osób wymienionych w twittach", x = "", y = "",
+         subtitle = paste0(mecz, toupper(twitter_query_tw)),
+         caption = caption_str)
+
+  ggsave("pics/person_populatiry.png", plot = person_populatiry, width = 12, height = 9, units = "in", dpi = 100)
+  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": popularność osób wymienionych w twittach\n#worldcup2018 #worldcup"), media = "pics/person_populatiry.png")
+
 }

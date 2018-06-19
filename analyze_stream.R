@@ -36,8 +36,8 @@ teams <- read_csv("../dicts/teams.csv", col_types = "cc")
 # czy skrypt opalony z shella?
 if(length(commandArgs()) == 2) {
 
-  teamA_s <- "SWE" # 1st team
-  teamB_s <- "KOR" # 2nd team
+  teamA_s <- "POL" # 1st team
+  teamB_s <- "SEN" # 2nd team
 
   post_tweets <- FALSE
 
@@ -118,7 +118,7 @@ dedicated_stop_words <- c("https", "t.co", "manofthematch", "budweiser",
 
 
 spam_strings <- c("Tap below to vote now", "You can vote for your",
-                  "Absolute world class performance")
+                  "Absolute world class performance", "live stream")
 
 momenty <- tribble(~time, ~co,
                    "2018-06-15 20:00", "Start",
@@ -166,6 +166,7 @@ tweets <- list.files() %>%
   filter(!grepl(spam_strings[[1]], text)) %>%
   filter(!grepl(spam_strings[[2]], text)) %>%
   filter(!grepl(spam_strings[[3]], text)) %>%
+  filter(!grepl(spam_strings[[4]], text)) %>%
   distinct(status_id, .keep_all = TRUE) %>%
   # zostawiamy tweety z tagiem meczu
   filter(grepl(paste0(twitter_query, "|", twitter_query_rev),
@@ -341,6 +342,8 @@ p8 <- words %>%
   filter(n == max(n), n > 1) %>%
   ungroup() %>%
   mutate(created_at = with_tz(created_at, "Europe/Warsaw")) %>%
+  arrange(desc(word)) %>%
+  mutate(word = fct_inorder(word)) %>%
   ggplot() +
   geom_jitter(aes(created_at, word, size = n),
              color = "red", alpha = 0.25,

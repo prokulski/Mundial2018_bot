@@ -1,9 +1,11 @@
+# generator wpisów do CRONa dla meczy rozgrywających się pojedynczo (jeden mecz o jednej porze)
+
 library(tidyverse)
 library(lubridate)
 
-ttable <- read.table(text =
-"19 14:00 COL JPN
-19 17:00 POL SEG
+ttable <- read.table(text = "
+19 14:00 COL JPN
+19 17:00 POL SEN
 19 20:00 RUS EGY
 20 14:00 POR MAR
 20 17:00 URU KSA
@@ -18,8 +20,9 @@ ttable <- read.table(text =
 23 17:00 KOR MEX
 23 20:00 GER SWE
 24 14:00 ENG PAN
-24 17:00 JPN SEG
-24 20:00 POL COL") %>%
+24 17:00 JPN SEN
+24 20:00 POL COL
+") %>%
   set_names(c("day", "hour", "teama", "teamb"))
 
 for(i in 1:nrow(ttable)) {
