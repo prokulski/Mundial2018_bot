@@ -231,7 +231,7 @@ if(nrow(shit_players) != 0) {
     ggplot() +
     geom_tile(aes(shit_word, player_name, fill = n), color = "gray20") +
     geom_text(aes(shit_word, player_name, label = n), color = "gray20") +
-    scale_fill_distiller(palette = "YlOrRd", direction = -1)
+    scale_fill_distiller(palette = "YlOrRd", direction = 1)
 
   # twitujemy tylko dla jezyka polskiego - ten z kolei tylko dla meczy Polaków ma sens
   if(dict == "pl") {
