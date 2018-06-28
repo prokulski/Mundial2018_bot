@@ -13,7 +13,7 @@
 
 rm(list = ls())
 
-dict <- "eng"
+dict <- "pl"
 
 suppressPackageStartupMessages(library(methods))
 suppressPackageStartupMessages(library(tidyverse))
@@ -50,8 +50,8 @@ teams <- read_csv("../dicts/teams.csv", col_types = "cc")
 # czy skrypt opalony z shella?
 if(length(commandArgs()) == 2) {
 
-  teamA_s <- "RUS" # 1st team
-  teamB_s <- "EGY" # 2nd team
+  teamA_s <- "POL" # 1st team
+  teamB_s <- "COL" # 2nd team
 
   post_tweets <- FALSE
 
@@ -206,9 +206,9 @@ if(!is.null(plot_shit)) {
   ggsave("pics/plot_shit.png", plot = plot_shit, width = 12, height = 9, units = "in", dpi = 100)
   if(post_tweets) {
     if(dict == "pl") {
-      post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": rozkład użycia \"brzydkich wyrazów\"\n#worldcup2018 #worldcup"), media = "pics/plot_shit.png")
+      post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": rozkład użycia \"brzydkich wyrazów\"\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz #laczynaspilka"), media = "pics/plot_shit.png")
     } else {
-      post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": frequency of \"swear words\"\n#worldcup2018 #worldcup"), media = "pics/plot_shit.png")
+      post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": frequency of \"swear words\"\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz"), media = "pics/plot_shit.png")
     }
   }
 }
@@ -218,7 +218,7 @@ if(!is.null(plot_shit)) {
 if(!is.null(plot_players)) {
   ggsave("pics/plot_players.png", plot = plot_players, width = 12, height = 9, units = "in", dpi = 100)
   if(post_tweets & dict == "pl") {
-    post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": kto był wymieniany?\n#worldcup2018 #worldcup"), media = "pics/plot_players.png")
+    post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": kto był wymieniany?\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz #laczynaspilka"), media = "pics/plot_players.png")
   }
 }
 
@@ -240,7 +240,7 @@ if(nrow(shit_players) != 0) {
                                                   caption = caption_str)
 
     ggsave("pics/plot_shit_players.png", plot = plot_shit_players, width = 12, height = 9, units = "in", dpi = 100)
-    if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": \"brzydkie wyrazy\" przy osobach użyte w jednym tweecie\n#worldcup2018 #worldcup"), media = "pics/plot_shit_players.png")
+    if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": \"brzydkie wyrazy\" przy osobach użyte w jednym tweecie\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz  #laczynaspilka"), media = "pics/plot_shit_players.png")
   }
 }
 
@@ -262,6 +262,6 @@ if(dict == "pl") {
          caption = caption_str)
 
   ggsave("pics/person_populatiry.png", plot = person_populatiry, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": popularność osób wymienionych w twittach\n#worldcup2018 #worldcup"), media = "pics/person_populatiry.png")
+  if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": popularność osób wymienionych w twittach\n\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz #laczynaspilka"), media = "pics/person_populatiry.png")
 
 }

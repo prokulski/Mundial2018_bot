@@ -36,8 +36,8 @@ teams <- read_csv("../dicts/teams.csv", col_types = "cc")
 # czy skrypt opalony z shella?
 if(length(commandArgs()) == 2) {
 
-  teamA_s <- "POL" # 1st team
-  teamB_s <- "SEN" # 2nd team
+  teamA_s <- "KSA" # 1st team
+  teamB_s <- "EGY" # 2nd team
 
   post_tweets <- FALSE
 
@@ -520,7 +520,7 @@ p7 <- words %>%
 
 if(!is.null(p1)) {
   ggsave("pics/p1.png", plot = p1, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": number of tweets over time\n#worldcup2018 #worldcup"), media = "pics/p1.png")
+  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": number of tweets over time\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz"), media = "pics/p1.png")
 }
 
 if(!is.null(p2)) {
@@ -543,29 +543,29 @@ if(!is.null(p5)) {
   # if(post_tweets) post_tweet(status = paste0(mecz_tw, toupper(twitter_query_tw), ": What language are tweets written in?\n#worldcup2018 #worldcup"), media = "pics/p5.png")
 }
 
-if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular words in tweets\n#worldcup2018 #worldcup"), media = "pics/p6.png")
+if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular words in tweets\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz"), media = "pics/p6.png")
 
-if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular bi-words in tweets\n#worldcup2018 #worldcup"), media = "pics/p6b.png")
+if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular bi-words in tweets\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz"), media = "pics/p6b.png")
 
 if(!is.null(p7)) {
   ggsave("pics/p7.png", plot = p7, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular words in individual languages\n#worldcup2018 #worldcup"), media = "pics/p7.png")
+  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular words in individual languages\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz"), media = "pics/p7.png")
 }
 
 if(!is.null(p7b)) {
   ggsave("pics/p7b.png", plot = p7b, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular bi-words in individual languages\n#worldcup2018 #worldcup", rtag1), media = "pics/p7b.png")
+  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular bi-words in individual languages\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz", rtag1), media = "pics/p7b.png")
 }
 
 
 if(!is.null(p8)) {
   ggsave("pics/p8.png", plot = p8, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular words over time\n#worldcup2018 #worldcup", rtag2), media = "pics/p8.png")
+  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the most popular words over time\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz", rtag2), media = "pics/p8.png")
 }
 
 
 if(!is.null(p9)) {
   ggsave("pics/p9.png", plot = p9, width = 12, height = 9, units = "in", dpi = 100)
-  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the three most popular words in 5-minute blocks\n#worldcup2018 #worldcup", rtag3), media = "pics/p9.png")
+  if(post_tweets) post_tweet(status = paste0(match_result_str, " ", mecz_tw, toupper(twitter_query_tw), ": the three most popular words in 5-minute blocks\n#worldcup2018 #worldcup #mundial2018 #cm2018 #dataviz", rtag3), media = "pics/p9.png")
 }
 

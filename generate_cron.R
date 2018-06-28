@@ -4,26 +4,24 @@ library(tidyverse)
 library(lubridate)
 
 ttable <- read.table(text = "
-19 14:00 COL JPN
-19 17:00 POL SEN
-19 20:00 RUS EGY
-20 14:00 POR MAR
-20 17:00 URU KSA
-20 20:00 IRN ESP
-21 14:00 DEN AUS
-21 17:00 FRA PER
-21 20:00 ARG CRO
-22 14:00 BRA CRC
-22 17:00 NGA ISL
-22 20:00 SRB SUI
-23 14:00 BEL TUN
-23 17:00 KOR MEX
-23 20:00 GER SWE
-24 14:00 ENG PAN
-24 17:00 JPN SEN
-24 20:00 POL COL
+25 6 16:00 URU RUS
+25 6 16:00 KSA EGY
+25 6 20:00 ESP MAR
+25 6 20:00 IRN POR
+26 6 16:00 AUS PER
+26 6 16:00 DEN FRA
+26 6 20:00 NGA ARG
+26 6 20:00 ISL CRO
+27 6 16:00 KOR GER
+27 6 16:00 MEX SWE
+27 6 20:00 SRB BRA
+27 6 20:00 SUI CRC
+28 6 16:00 JPN POL
+28 6 16:00 SEN COL
+28 6 20:00 PAN TUN
+28 6 20:00 ENG BEL
 ") %>%
-  set_names(c("day", "hour", "teama", "teamb"))
+  set_names(c("day", "month", "hour", "teama", "teamb"))
 
 for(i in 1:nrow(ttable)) {
   # # capture
@@ -33,7 +31,8 @@ for(i in 1:nrow(ttable)) {
   # 2 16 19 6 * Rscript /home/lemur/RProjects/Mundial2018_twitter_stream/analyze_stream.R 1 COL JPN
   # 17 16 19 6 * Rscript /home/lemur/RProjects/Mundial2018_twitter_stream/polskie_mecze.R 1 eng COL JPN
 
-  time <- ymd_hm(paste0("2018-06-", as.character(ttable[i, "day"]), " " ,
+  time <- ymd_hm(paste0("2018-0", as.character(ttable[i, "month"]),
+                        "-", as.character(ttable[i, "day"]), " " ,
                         as.character(ttable[i, "hour"])))
   teamA <- as.character(ttable[i, "teama"])
   teamB <- as.character(ttable[i, "teamb"])
